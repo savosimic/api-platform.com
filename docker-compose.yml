@@ -1,0 +1,51 @@
+version: "3.8"
+services:
+    # Mysql database container
+    db:
+        image: mysql
+        container_name: api_platform_db
+        restart: always
+        volumes:
+            - db-data:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_HOST: 127.0.0.1
+        ports:
+            - '3306:3306'
+        networks:
+            - api_platform
+
+    # phpmyadmin container
+    phpmyadmin:
+        image: phpmyadmin
+        container_name: api_platform_phpmyadmin
+        restart: always
+        depends_on:
+            - db
+        ports:
+            - 8080:80
+        environment:
+            PMA_HOST: db
+        networks:
+            - api_platform
+
+    # Symfony apache project container
+    www:
+        build: docker/php
+        container_name: api_platform
+        ports:
+          - "80:80"
+        extra_hosts:
+          - "api-platform.com:127.0.0.1"
+        volumes:
+            - ./docker/php/vhosts:/etc/apache2/sites-enabled
+            - ./:/var/www
+        restart: always
+        networks:
+            - api_platform
+
+networks:
+    api_platform:
+
+volumes:
+    db-data:
